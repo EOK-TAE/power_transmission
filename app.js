@@ -6,13 +6,14 @@ let viewer;
 // 배경 지도 (Web Mercator)
 var webMercator = new Cesium.WebMercatorTilingScheme();
 
-// ArcGIS 항공/위성 사진 (World Imagery)
-function createArcWorldImagery() {
+// CARTO 다크맵
+function createCartoDarkImagery() {
   return new Cesium.UrlTemplateImageryProvider({
-    url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
     tilingScheme: webMercator,
-    maximumLevel: 19,
-    credit: "© Esri, Maxar, Earthstar Geographics",
+    maximumLevel: 20,
+    subdomains: ["a", "b", "c", "d"],
+    credit: "© CARTO © OpenStreetMap contributors",
   });
 }
 
@@ -43,9 +44,9 @@ function createArcWorldImagery() {
     requestRenderMode: false,
   });
 
-  // 배경 지도: ArcGIS 항공사진 (World Imagery)
+  // 배경 지도: CARTO 다크맵
   viewer.scene.imageryLayers.removeAll();
-  var baseProvider = createArcWorldImagery();
+  var baseProvider = createCartoDarkImagery();
   await baseProvider.readyPromise;
   viewer.scene.imageryLayers.addImageryProvider(baseProvider);
 
@@ -63,7 +64,7 @@ async function runScene() {
     },
   });
 
-  // 3D 건물 (Cesium OSM Buildings - Ion 자산)
+  // 3D 건물 (LOD1: Cesium OSM Buildings - Ion 자산)
   try {
     const buildingTileset = await Cesium.Cesium3DTileset.fromIonAssetId(96188);
     viewer.scene.primitives.add(buildingTileset);
@@ -233,25 +234,32 @@ function updatePlayPauseIcon() {
   iconPause.style.display = isPlaying ? "block" : "none";
 }
 
-document.getElementById("btnPlayPause").addEventListener("click", () => {
-  isPlaying = !isPlaying;
-  clock.shouldAnimate = isPlaying;
-  updatePlayPauseIcon();
-});
-
-document.getElementById("btnRewind").addEventListener("click", () => {
-  clock.multiplier = -2.0;
-  clock.shouldAnimate = true;
-  isPlaying = true;
-  updatePlayPauseIcon();
-});
-
-document.getElementById("btnFastForward").addEventListener("click", () => {
-  clock.multiplier = 2.0;
-  clock.shouldAnimate = true;
-  isPlaying = true;
-  updatePlayPauseIcon();
-});
+var btnPlayPause = document.getElementById("btnPlayPause");
+var btnRewind = document.getElementById("btnRewind");
+var btnFastForward = document.getElementById("btnFastForward");
+if (btnPlayPause) {
+  btnPlayPause.addEventListener("click", () => {
+    isPlaying = !isPlaying;
+    clock.shouldAnimate = isPlaying;
+    updatePlayPauseIcon();
+  });
+}
+if (btnRewind) {
+  btnRewind.addEventListener("click", () => {
+    clock.multiplier = -2.0;
+    clock.shouldAnimate = true;
+    isPlaying = true;
+    updatePlayPauseIcon();
+  });
+}
+if (btnFastForward) {
+  btnFastForward.addEventListener("click", () => {
+    clock.multiplier = 2.0;
+    clock.shouldAnimate = true;
+    isPlaying = true;
+    updatePlayPauseIcon();
+  });
+}
 
   updatePlayPauseIcon();
 }
