@@ -8,11 +8,209 @@
   <link href="style.css" rel="stylesheet" />
 </head>
 <body>
-  <div id="cesiumContainer"></div>
+  <div id="app">
+    <div id="cesiumContainer"></div>
 
-  <!-- 하단 UI 오버레이 -->
-  <div class="simulation-ui">
-    <div class="corner-logo" aria-hidden="true">◆</div>
+    <div id="uiOverlay">
+      <div class="dashboard-grid">
+        <!-- TOP KPI BAR -->
+        <header class="panel top-bar" aria-label="상단 KPI 바">
+          <div class="top-bar-main">
+            <div class="top-bar-title">
+              <p class="top-bar-label">실시간 전력 모니터링</p>
+              <p class="top-bar-title-text">충주시 송전 계통</p>
+            </div>
+            <div class="top-bar-meta">
+              <span class="top-bar-meta-label">계통 상태</span>
+              <span id="overallStatusText" class="status-pill status-pill--normal">정상 운전</span>
+            </div>
+            <div class="top-bar-updated">
+              <span class="top-bar-meta-label">최종 업데이트</span>
+              <span id="overallUpdatedText">--:--:--</span>
+            </div>
+          </div>
+          <div class="top-kpi-row">
+            <article class="kpi-card" data-kpi="gen">
+              <p class="kpi-title">발전량</p>
+              <p class="kpi-value">
+                <span id="kpiGenValue">0</span>
+                <span class="kpi-unit">MW</span>
+              </p>
+              <div class="kpi-progress">
+                <div id="kpiGenBar" class="kpi-progress-fill"></div>
+              </div>
+            </article>
+            <article class="kpi-card" data-kpi="storage">
+              <p class="kpi-title">저장용량</p>
+              <p class="kpi-value">
+                <span id="kpiStorageValue">0</span>
+                <span class="kpi-unit">MWh</span>
+              </p>
+              <div class="kpi-progress">
+                <div id="kpiStorageBar" class="kpi-progress-fill"></div>
+              </div>
+            </article>
+            <article class="kpi-card" data-kpi="eff">
+              <p class="kpi-title">송전 효율</p>
+              <p class="kpi-value">
+                <span id="kpiEffValue">0</span>
+                <span class="kpi-unit">%</span>
+              </p>
+              <div class="kpi-progress">
+                <div id="kpiEffBar" class="kpi-progress-fill"></div>
+              </div>
+            </article>
+            <article class="kpi-card" data-kpi="pf">
+              <p class="kpi-title">역률</p>
+              <p class="kpi-value">
+                <span id="kpiPfValue">0.000</span>
+              </p>
+              <div class="kpi-progress">
+                <div id="kpiPfBar" class="kpi-progress-fill"></div>
+              </div>
+            </article>
+            <article class="kpi-card" data-kpi="co2">
+              <p class="kpi-title">CO₂ 저감량</p>
+              <p class="kpi-value">
+                <span id="kpiCo2Value">0</span>
+                <span class="kpi-unit">kg</span>
+              </p>
+              <div class="kpi-progress">
+                <div id="kpiCo2Bar" class="kpi-progress-fill"></div>
+              </div>
+            </article>
+          </div>
+        </header>
+
+        <!-- LEFT PANEL -->
+        <aside class="panel left-panel" aria-label="실시간 지표 요약 및 이상 경보">
+          <div class="panel-header">
+            <div>
+              <p class="panel-label">현재 전력 상태</p>
+              <h2 class="panel-title">실시간 지표 요약</h2>
+            </div>
+          </div>
+          <div class="panel-body">
+            <section class="section">
+              <h3 class="section-title">실시간 지표 요약</h3>
+              <div class="metric-row">
+                <div class="metric-labels">
+                  <span class="metric-name">발전량</span>
+                  <span class="metric-unit-text">MW</span>
+                </div>
+                <div class="metric-values">
+                  <span id="leftGenValue" class="metric-value-text">0</span>
+                  <span class="metric-capacity-text">/ 680</span>
+                </div>
+                <div class="metric-progress">
+                  <div id="leftGenBar" class="metric-progress-fill"></div>
+                </div>
+              </div>
+              <div class="metric-row">
+                <div class="metric-labels">
+                  <span class="metric-name">저장용량</span>
+                  <span class="metric-unit-text">MWh</span>
+                </div>
+                <div class="metric-values">
+                  <span id="leftStorageValue" class="metric-value-text">0</span>
+                  <span class="metric-capacity-text">/ 735</span>
+                </div>
+                <div class="metric-progress">
+                  <div id="leftStorageBar" class="metric-progress-fill metric-progress-fill--green"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="section">
+              <h3 class="section-title">이상 경보</h3>
+              <ul id="alertList" class="alert-list">
+                <!-- JS에서 채움 -->
+              </ul>
+            </section>
+          </div>
+        </aside>
+
+        <!-- CENTER: 지도 영역 (클릭 통과용 더미 셀) -->
+        <section class="center-spacer" aria-hidden="true"></section>
+
+        <!-- RIGHT PANEL -->
+        <aside class="panel right-panel" aria-label="운영 상태 요약">
+          <div class="panel-header">
+            <div>
+              <p class="panel-label">KPI 리포트</p>
+              <h2 class="panel-title">운영 한계 상태</h2>
+            </div>
+          </div>
+          <div class="panel-body">
+            <section class="section">
+              <h3 class="section-title">운영 상태 요약</h3>
+              <p id="statusSummaryText" class="status-summary-text">전체 계통이 정상 범위 내에서 운전 중입니다.</p>
+            </section>
+
+            <section class="section">
+              <h3 class="section-title">임계치 설정</h3>
+              <table class="threshold-table">
+                <tbody>
+                  <tr>
+                    <th>송전 효율 하한</th>
+                    <td>95%</td>
+                  </tr>
+                  <tr>
+                    <th>전압 편차 허용</th>
+                    <td>&plusmn; 5%</td>
+                  </tr>
+                  <tr>
+                    <th>역률 기준</th>
+                    <td>0.97 이상</td>
+                  </tr>
+                  <tr>
+                    <th>저장 레벨 경고</th>
+                    <td>&lt; 20%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </section>
+
+            <section class="section section--buttons">
+              <button id="btnExport" type="button" class="primary-btn secondary-btn">리포트 내보내기</button>
+              <button id="btnDetails" type="button" class="primary-btn">상세 보기</button>
+            </section>
+          </div>
+        </aside>
+
+        <!-- BOTTOM EVENT LOG -->
+        <footer class="panel bottom-panel" aria-label="이벤트 로그">
+          <div class="bottom-header">
+            <div>
+              <p class="panel-label">실시간 로그</p>
+              <h2 class="panel-title">시간 이벤트</h2>
+            </div>
+            <div class="severity-filters" aria-label="심각도 필터">
+              <button type="button" class="filter-chip filter-chip--active" data-filter="ALL">ALL</button>
+              <button type="button" class="filter-chip" data-filter="CRITICAL">CRITICAL</button>
+              <button type="button" class="filter-chip" data-filter="WARNING">WARNING</button>
+              <button type="button" class="filter-chip" data-filter="RESOLVED">RESOLVED</button>
+            </div>
+          </div>
+          <div class="event-table-wrapper">
+            <table class="event-table">
+              <thead>
+                <tr>
+                  <th>시간</th>
+                  <th>이벤트</th>
+                  <th>심각도</th>
+                  <th>구간</th>
+                  <th>값</th>
+                </tr>
+              </thead>
+              <tbody id="eventTableBody">
+                <!-- JS에서 채움 -->
+              </tbody>
+            </table>
+          </div>
+        </footer>
+      </div>
+    </div>
   </div>
 
   <script>
